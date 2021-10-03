@@ -1,0 +1,7 @@
+@import "../../../globalVariables.scss";
+
+.head-cell {
+  width: $table-column-width;
+  border-bottom: 2px solid black;
+  color: $teal
+}

@@ -1,8 +1,13 @@
 @import "globalVariables.scss";
 
-body {
+body, html {
   font-family: 'Raleway';
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
 }
+
 .container {
   text-align: center;
   display: flex;

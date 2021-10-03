@@ -1,0 +1,44 @@
+@import "../../globalVariables.scss";
+
+.button-container {
+  width: 5em;
+  border-radius: 5px;
+  padding: 0.3em;
+  font-size: 1.2em;
+  text-align: center;
+
+  &:hover {
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+  }
+
+  &.primary {
+    background-color: $teal;
+    color: white;
+
+    &:hover {
+      background-color: darken($teal, 10%);
+    }
+  }
+
+  &.secondary {
+    border: 1px solid $teal;
+    color: $teal;
+
+    &:hover {
+      background-color: lighten($teal, 10%);
+      color: white;
+    }
+  }
+
+  &.disabled {
+    background-color: $off-white;
+    color: gray;
+
+    &:hover {
+      background-color: $off-white;
+      color: gray;
+    }
+  }
+
+}

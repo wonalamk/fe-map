@@ -1,0 +1,11 @@
+@import "../../../globalVariables.scss";
+
+
+.table-body {
+  .row {
+    .cell {
+      padding: 5px;
+      border-bottom: 1px solid gray;
+    }
+  }
+}

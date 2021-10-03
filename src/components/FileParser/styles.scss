@@ -1,0 +1,26 @@
+.file-parser {
+    max-height: 800px;
+    overflow: auto;
+
+
+  .errors {
+
+    .title {
+      margin-bottom: 1em;
+      font-weight: 600;
+      font-size: 1.2em;
+
+    }
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+
+
+    .error {
+      margin-bottom: 1em;
+      height: 100%;
+      color: red;
+    }
+  }
+  
+}

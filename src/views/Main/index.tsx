@@ -1,133 +1,66 @@
-import React, { CSSProperties, useCallback,  useMemo,  useState } from 'react';
-import {DropzoneOptions, useDropzone} from 'react-dropzone'
+import React, { useEffect, useRef, useState } from 'react'
+import Button, { BUTTON_TYPES } from '../../components/Button';
+import FileParser from '../../components/FileParser';
+import FileUploader from '../../components/FileUploader';
 
 import "./styles.scss";
 
-
-enum ERROR_TYPES {
-  wrongExtension = 'wrongExtension',
-}
-
-interface Error {
-  errorContent: {
-    code: string;
-    message: string;
-  },
-  errorJSX: JSX.Element
-}
-
-interface ErrorMapping {
-  [key: string]: Error;
-}
-
-const ALLOWED_TILE_EXTENSIONS = ['csv', 'xlsx', 'xls'];
-
-const errorMappings: ErrorMapping = {
-  wrongExtension: {
-    errorContent: {
-      code: "wrong-extension",
-      message: "Wrong file extension"
-    },
-    errorJSX: (<div>Wrong file extension. Following file extensions are accepted: <b>{ALLOWED_TILE_EXTENSIONS.join(', ')}</b></div>)
-  }
-}
-
 const Main = () => {
+
   const [file, setFile] = useState<File>();
-  const [isFileRejected, setIsFileRejected] = useState<boolean>();
-  const [isFileAccepted, setIsFileAccepted] = useState<boolean>();
-  const [error, setError] = useState<JSX.Element>(<></>);
-
-  const onDrop = useCallback(droppedFile => {
-    if (droppedFile[0]) {
-      setFile(droppedFile[0])
-    }
-  },[]);
-
-  const fileValidator = (file: File) => {
-
-    const ext = file.name.split('.').pop();
-    let errorType = "";
-    setFile(undefined);
-
-    if (ext && !ALLOWED_TILE_EXTENSIONS.includes(ext)) {
-      errorType = ERROR_TYPES.wrongExtension;
-    };
-    
-    if (errorType.length !== 0) {
-      setIsFileAccepted(false);
-      setIsFileRejected(true);
-      setError(errorMappings[errorType].errorJSX)
-      return errorMappings[errorType].errorContent;
-    } else {
-      setIsFileAccepted(true);
-      setIsFileRejected(false);
-      return null;
-    }
-  }
-
-  const dropzoneOptions: DropzoneOptions  = {
-    onDrop,
-    maxFiles: 1,
-    validator: fileValidator
-  }
-
-  const {getRootProps, getInputProps, isDragActive} = useDropzone(dropzoneOptions);
-
-  const style: CSSProperties = useMemo(() => {
-    const baseStyle = {
-      flex: 1,
-      display: 'flex',
-      alignItems: 'center',
-      padding: '20px',
-      borderWidth: 2,
-      borderRadius: 2,
-      borderColor: '#c8d9e4',
-      borderStyle: 'dashed',
-      backgroundColor: '#f2f2f2',
-      color: '#2b6777',
-      outline: 'none',
-      transition: 'border .24s ease-in-out'
-    };
-    
-    const activeStyle = {
-      borderColor: '#2b6777'
-    };
-    
-    const acceptStyle = {
-      borderColor: '#52ab98'
-    };
-    
-    const rejectStyle = {
-      borderColor: 'red'
-    };
-
-    
-    return {
-      ...baseStyle,
-      ...(isDragActive ? activeStyle : {}),
-      ...(isFileAccepted ? acceptStyle : {}),
-      ...(isFileRejected ? rejectStyle : {})
-    }
-  }, [isDragActive, isFileAccepted, isFileRejected]);
-
-  const errorMessage = error ? (
-    <>
-      Your file is rejected for following reasons:
-      <div className="error">{error}</div>
-    </>
-  ) : null;
+  const [delimiter, setDelimiter] = useState<string>(',');
+  const [headerIncluded, setHeaderIncluded] = useState<boolean>(false);
   
+  const step1Ref = useRef<HTMLDivElement>(null);
+  const step2Ref = useRef<HTMLDivElement>(null);
+  
+  const [currentStep, setCurrentStep] = useState<React.RefObject<HTMLDivElement>>(step1Ref);
+  const [error, setError] = useState<string>();
+
+  const onFileUploaded = (file: File, delimiter: string, removeHeaders: boolean) => {
+    setFile(file);
+    setDelimiter(delimiter);
+    setHeaderIncluded(removeHeaders);
+  }
+
+  useEffect(() => {
+    scrollToStep(currentStep);
+  }, [currentStep])
+
+  const scrollToStep = (ref:React.RefObject<HTMLDivElement>) => {
+    ref.current?.scrollIntoView({ behavior: "smooth" });
+  }
+
+  const moveToNextStep = (step: number) => {
+    switch (step) {
+      case 2: 
+        if (file) {
+          setCurrentStep(step2Ref);
+        } else {
+          window.alert("Upload a file first");
+        }
+        break;
+      default:
+    }
+  }
+
+  const step1 = (
+    <div className="step-container" ref={step1Ref}>
+        <FileUploader onFileUploaded={onFileUploaded}/>
+        <Button label="Next" type={BUTTON_TYPES.primary} disabled={file ? false : true} onClick={() => moveToNextStep(2)}/>
+    </div>
+  )
+
+  const step2 = file && currentStep === step2Ref ? (
+    <div className="step-container" ref={step2Ref}>
+        <FileParser file={file} delimiter={delimiter} headerIncluded={headerIncluded} errorCallback={() => setCurrentStep(step1Ref)}/>
+    </div>
+  ) : null;
+
   return (
-    <div className="container">
-      <div {...getRootProps({style})}>
-        <input {...getInputProps()} type="file"/>
-        <div>Drag and drop file here or click to select from File Manager</div>
-      </div>
-      <div className="messages">
-        {isFileAccepted && file && !isFileRejected? <div>Succesfully uploaded <b>{file.name}</b> file</div> : null}
-        {isFileRejected && !isFileAccepted ? errorMessage : null}
-      </div>
+    <div className="main-container">
+      {step1}
+      {step2}      
     </div>
   )
 };
