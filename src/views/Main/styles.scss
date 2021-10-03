@@ -1,0 +1,12 @@
+.container {
+  &:hover {
+    cursor: pointer;
+  }
+
+  .messages {
+    padding: 1em;
+    .error {
+      color: red;
+    }
+  }
+}
