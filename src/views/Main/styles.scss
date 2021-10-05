@@ -10,5 +10,28 @@
     align-items: center;
     justify-content: center;
     height: 100vh;
+
+    .title {
+      width: 100%;
+      text-align: left;
+      margin-bottom: 1em;
+      font-size: 1.2em;
+      font-weight: 600;
+    }
+
+    .options {
+      width: 100%;
+      margin: 1em 0;
+      
+      .select-option {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20px;
+  
+        .radio-buttons {
+          text-align: left;
+        }
+      }
+    }
   }
 }

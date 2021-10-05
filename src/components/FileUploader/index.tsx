@@ -1,10 +1,11 @@
-import React, { CSSProperties, useCallback, useMemo,  useState } from 'react';
+import React, { CSSProperties, useCallback, useEffect, useMemo,  useState } from 'react';
 import {DropzoneOptions, useDropzone} from 'react-dropzone'
 
 import "./styles.scss";
 
 interface FileUploaderProps {
-  onFileUploaded: (file: File, delimiter: string, removeHeaders: boolean) => void;
+  file?: File;
+  onFileUploaded: (file: File) => void;
 }
 
 enum ERROR_TYPES {
@@ -42,21 +43,27 @@ const errorMappings: ErrorMapping = {
   }
 }
 
-const FileUploader: React.FC<FileUploaderProps> = ({onFileUploaded}) => {
-  const [file, setFile] = useState<File>();
+const FileUploader: React.FC<FileUploaderProps> = (props) => {
+  const [file, setFile] = useState<File | undefined>(props.file ?? undefined);
   const [isFileRejected, setIsFileRejected] = useState<boolean>();
   const [isFileAccepted, setIsFileAccepted] = useState<boolean>();
   const [error, setError] = useState<JSX.Element>(<></>);
-  const [delimiter, setDelimiter] = useState<string>(',');
-  const [headerIncluded, setHeaderIncluded] = useState<boolean>(true);
+  const onFileUploaded = props.onFileUploaded
+  const fileFromParent = props.file;
 
+
+  useEffect(() => {
+    if (fileFromParent) {
+      setFile(fileFromParent);
+    }
+  }, [fileFromParent])
 
   const onDrop = useCallback(droppedFile => {
     if (droppedFile[0]) {
       setFile(droppedFile[0])
-      onFileUploaded(droppedFile[0], delimiter, headerIncluded);
+      onFileUploaded(droppedFile[0]);
     }
-  },[delimiter, onFileUploaded, headerIncluded]);
+  },[onFileUploaded]);
 
   
   const fileValidator = (file: File) => {
@@ -101,8 +108,8 @@ const FileUploader: React.FC<FileUploaderProps> = ({onFileUploaded}) => {
       backgroundColor: '#f2f2f2',
       color: '#2b6777',
       outline: 'none',
-      transition: 'border .24s ease-in-out',
-      height: '20em'
+      transition: 'border .2s ease-in-out',
+      height: '15em'
     };
     
     const activeStyle = {
@@ -133,13 +140,6 @@ const FileUploader: React.FC<FileUploaderProps> = ({onFileUploaded}) => {
     </>
   ) : null;
 
-  const selectDelimiter = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setDelimiter(event.target.value === 'Comma' ? ',' : ';');
-  }
-
-  const selectHeader = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setHeaderIncluded(event.target.value === 'yes' ? true : false);
-  }
   return (
     <div className="container">
       <div className="title">Upload a file</div>
@@ -147,36 +147,8 @@ const FileUploader: React.FC<FileUploaderProps> = ({onFileUploaded}) => {
         <input {...getInputProps()} type="file"/>
         <div>Drag and drop file here or click to select from File Manager</div>
       </div>
-
-      <div className="options">
-        <div className="title">Upload options</div>
-        <div className="select-option">
-          <div>Select delimiter</div>
-          <select name="delimiter" onChange={selectDelimiter} value='Comma'>
-            <option>Comma</option>
-            <option>Semicolon</option>
-          </select>
-        </div>
-
-        <div className="select-option">
-          <div>Header included</div>
-
-          <div className="radio-buttons">
-            <div>
-              <input type="radio" name="headers" value="yes" onChange={selectHeader} checked={headerIncluded}/>
-              <label>Yes</label>
-            </div>
-
-              <input type="radio" name="headers" value="no" onChange={selectHeader} checked={!headerIncluded}/>
-              <label>No</label>
-          </div>
-         
-        </div>
-        
-      </div>
-
       <div className="messages">
-        {isFileAccepted && file && !isFileRejected? <div>Succesfully uploaded <b>{file.name}</b> file</div> : null}
+        {isFileAccepted && file && fileFromParent && !isFileRejected? <div>Succesfully uploaded <b>{file.name}</b> file</div> : null}
         {isFileRejected && !isFileAccepted ? errorMessage : null}
       </div>
     </div>

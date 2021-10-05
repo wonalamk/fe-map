@@ -14,8 +14,10 @@ interface FileParserProps {
 
 const FileParser: React.FC<FileParserProps> = ({file, delimiter, headerIncluded, errorCallback}) => {
   const [data, setData] = useState<string[][]>();
-  const [header, setHeader] = useState<string[]>();
+  const [header, setHeader] = useState<string[]>([]);
   const [errors, setErrors] = useState<string[]>([]);
+
+  const options = ['city', 'state', 'zip', 'address', 'category']
 
   useEffect(() => {
     parse(file, {
@@ -27,6 +29,11 @@ const FileParser: React.FC<FileParserProps> = ({file, delimiter, headerIncluded,
           setData(data.slice(1))
         } else {
           setData(data)
+          const mockedHeader = [];
+          for (let i = 0; i < data[0].length; i++) {
+            mockedHeader.push(`Column ${i + 1}`);
+          }
+          setHeader(mockedHeader);
         }
       }
     });
@@ -46,11 +53,14 @@ const FileParser: React.FC<FileParserProps> = ({file, delimiter, headerIncluded,
       errorMessages.push("Data corrupted. At least one row has different length than the others.")
     }
 
-    console.log(data)
-    if (data.length > 20) {
+    console.log(lengths.values().next().value)
+    if (lengths.values().next().value < 5) {
+      errorMessages.push("Your file should contain at least 5 columns");
+    }
+    else if (data.length > 20) {
       console.log("lens",data.length, data)
       errorMessages.push("Too much data. Your file should contain no more than 20 rows.");
-    };
+    }
     if (errorMessages.length !== 0) {
       setErrors(errorMessages);
     }
@@ -66,10 +76,29 @@ const FileParser: React.FC<FileParserProps> = ({file, delimiter, headerIncluded,
     </div>
   ) : null;
   
+  const listOfColumnsOptions = header.map((entry) => (<option>{entry}</option>));
+
+  const selects = options.map((option) => {
+    return (
+      <div className="select">
+        <div className="select-title">Select column that represents <b>{option}</b>:</div>
+        <select name={option}>
+          {listOfColumnsOptions}
+        </select>
+      </div>
+    )
+  })
+
+  const content =  (
+    <>
+      <Table data={data!} header={header}/>
+      <div className="selects">{selects}</div>
+    </>
+  )
   
   return (
     <div className="file-parser">
-      {errorMessage ?? (data ? <Table data={data} header={header}/> : 'Data loading')}
+      {errorMessage ?? (data ? content : 'Data loading')}
     </div>
   )
 }
