@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { parse } from 'papaparse';
 import Table from '../Table';
 import Button, { BUTTON_TYPES } from '../Button';
@@ -10,12 +10,20 @@ interface FileParserProps {
   delimiter: string;
   headerIncluded: boolean;
   errorCallback: () => void;
+  successCallback: (data: string[][], fields: Field[]) => void;
 }
 
-const FileParser: React.FC<FileParserProps> = ({file, delimiter, headerIncluded, errorCallback}) => {
+export interface Field {
+  key: string;
+  value: string;
+}
+
+const FileParser: React.FC<FileParserProps> = ({file, delimiter, headerIncluded, errorCallback, successCallback}) => {
   const [data, setData] = useState<string[][]>();
   const [header, setHeader] = useState<string[]>([]);
   const [errors, setErrors] = useState<string[]>([]);
+  const [selectionErrors, setSelectionErrors] = useState<string>();
+  const [fields, setFields] = useState<Field[]>([]);
 
   const options = ['city', 'state', 'zip', 'address', 'category']
 
@@ -23,7 +31,7 @@ const FileParser: React.FC<FileParserProps> = ({file, delimiter, headerIncluded,
     parse(file, {
       delimiter,
       complete: (result) => {
-      const data = result.data as string[][];
+        const data = result.data as string[][];
         if (headerIncluded) {
           setHeader(data[0]);
           setData(data.slice(1))
@@ -40,7 +48,6 @@ const FileParser: React.FC<FileParserProps> = ({file, delimiter, headerIncluded,
   }, [delimiter, errors, file, headerIncluded]);
 
  useEffect(() => {
-
   if (data) {
     let lengths = new Set();
     const errorMessages = [];
@@ -68,6 +75,22 @@ const FileParser: React.FC<FileParserProps> = ({file, delimiter, headerIncluded,
 
  }, [data])
 
+ useEffect(() => {
+   if (data && data.length !== 0 && fields.length === options.length) {
+      successCallback(data!, fields);
+   }
+ })
+
+ const setField = (option: string, value: string) => {
+   setSelectionErrors(undefined)
+    const isSelectionDuplicated = fields.filter((field) => field.value === value);
+    if (isSelectionDuplicated.length !== 0) {
+      setSelectionErrors("Select unique column for each dropdown.")
+    } else {
+      setFields([...fields, {key: option, value}]);
+    }
+ }
+
   const errorMessage = errors.length !== 0  ? (
     <div className="errors">
       <div className="title">Following errors occured:</div>
@@ -76,23 +99,27 @@ const FileParser: React.FC<FileParserProps> = ({file, delimiter, headerIncluded,
     </div>
   ) : null;
   
-  const listOfColumnsOptions = header.map((entry) => (<option>{entry}</option>));
+  const listOfColumnsOptions = header.map((entry, index) => (<option value={index + 1}>{entry}</option>));
 
   const selects = options.map((option) => {
     return (
       <div className="select">
         <div className="select-title">Select column that represents <b>{option}</b>:</div>
-        <select name={option}>
+        <select name={option} onChange={(e) => setField(option, e.target.value)}>
+          <option disabled selected> -- select an option -- </option>
           {listOfColumnsOptions}
         </select>
       </div>
     )
-  })
+  });
 
   const content =  (
     <>
       <Table data={data!} header={header}/>
-      <div className="selects">{selects}</div>
+      <div className="selects">
+        {selects}
+        {selectionErrors ? <div className="selection-error">{selectionErrors}</div> :  null}
+      </div>
     </>
   )
   

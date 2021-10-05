@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import Button, { BUTTON_TYPES } from '../../components/Button';
-import FileParser from '../../components/FileParser';
+import FileParser, { Field } from '../../components/FileParser';
 import FileUploader from '../../components/FileUploader';
 
 import "./styles.scss";
@@ -10,10 +10,12 @@ const Main = () => {
   const [file, setFile] = useState<File>();
   const [delimiter, setDelimiter] = useState<string>(',');
   const [headerIncluded, setHeaderIncluded] = useState<boolean>(false);
-  const [mappings, setMappings] = useState<object>({})
+  const [parsedData, setParsedData] = useState<string[][]>();
+  const [fields, setFields] = useState<Field[]>();
   
   const step1Ref = useRef<HTMLDivElement>(null);
   const step2Ref = useRef<HTMLDivElement>(null);
+  const step3Ref = useRef<HTMLDivElement>(null);
   
   const [currentStep, setCurrentStep] = useState<React.RefObject<HTMLDivElement>>(step1Ref);
 
@@ -40,10 +42,14 @@ const Main = () => {
     switch (step) {
       case 2: 
         if (file) {
-
           setCurrentStep(step2Ref);
         } else {
           window.alert("Upload a file first");
+        }
+        break;
+      case 3:
+        if (parsedData?.length !== 0 && fields?.length !== 0) {
+          setCurrentStep(step3Ref)
         }
         break;
       default:
@@ -57,6 +63,11 @@ const Main = () => {
   const selectHeader = (event: React.ChangeEvent<HTMLInputElement>) => {
     console.log(event.target.value)
     setHeaderIncluded(event.target.value === 'yes' ? true : false);
+  }
+
+  const saveParsedData = (data: string[][], fields: Field[]) => {
+    setParsedData(data);
+    setFields(fields);
   }
 
   const step1 = (
@@ -89,9 +100,15 @@ const Main = () => {
 
   const step2 = file && currentStep === step2Ref ? (
     <div className="step-container" ref={step2Ref}>
-        <FileParser file={file} delimiter={delimiter} headerIncluded={headerIncluded} errorCallback={() => {cleanUp()}}/>
-        <Button label="Next" type={BUTTON_TYPES.primary} disabled={Object.keys(mappings).length === 0 ? false : true} onClick={() => moveToNextStep(3)}/>
+        <FileParser file={file} delimiter={delimiter} headerIncluded={headerIncluded} errorCallback={() => {cleanUp()}} successCallback={saveParsedData}/>
+        <Button label="Next" type={BUTTON_TYPES.primary} disabled={typeof(parsedData) === 'undefined' || typeof(fields) === 'undefined' } onClick={() => moveToNextStep(3)}/>
+    </div>
+  ) : null;
 
+  console.log(parsedData, fields)
+  const step3 = parsedData?.length !== 0 && fields?.length !== 0 ? (
+    <div className="step-container" ref={step3Ref}>
+      Welcome to step 3
     </div>
   ) : null;
 
@@ -99,6 +116,7 @@ const Main = () => {
     <div className="main-container">
       {step1}
       {step2}      
+      {step3}
     </div>
   )
 };

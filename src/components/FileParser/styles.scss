@@ -3,8 +3,7 @@
     overflow: auto;
     display: flex;
     flex-direction: row;
-
-
+    margin-bottom: 10px;
 
   .errors {
     .title {
@@ -29,9 +28,15 @@
     margin-left: 2em;
     display: flex;
     flex-direction: column;
+    width: 17em;
 
     .select-title {
       margin-top: 1em;
+    }
+
+    .selection-error {
+      margin-top: 3em;
+      color: red;
     }
   }
   
