@@ -4,6 +4,12 @@
   align-items: center;
   justify-content: center;
 
+  .home-button-container {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+  }
+
   .step-container{
     display: flex;
     flex-direction: column;

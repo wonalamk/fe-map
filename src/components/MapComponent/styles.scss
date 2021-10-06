@@ -1,0 +1,19 @@
+.map {
+  display: flex;
+  flex-direction: row;
+
+  .legend {
+    margin-left: 5em;
+    .legend-entry {
+      display: flex;
+      flex-direction: row;
+      margin-bottom: 2em;
+      align-items: center;
+
+      .category-name {
+        margin-left: 1em;
+      }
+    }
+  }
+}
+
